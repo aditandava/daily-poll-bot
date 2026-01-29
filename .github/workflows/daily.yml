@@ -7,7 +7,6 @@ permissions:
 on:
   schedule:
     # This runs at 14:30 UTC. 
-    # To find your time: Google "14:30 UTC to My Time"
     - cron: '30 14 * * *'
   
   # Allows you to run it manually from the "Actions" tab for testing
@@ -16,6 +15,10 @@ on:
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+    
+    # 👇 THIS IS THE ONLY CHANGE (The Switch) 👇
+    # If the variable BOT_SWITCH is not 'ON', the bot stops here.
+    if: vars.BOT_SWITCH == 'ON'
     
     steps:
       # 1. Download your code from the repo
