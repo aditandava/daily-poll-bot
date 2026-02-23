@@ -1,0 +1,51 @@
+name: ☢️ TOTAL REPO RESET
+
+on: 
+  workflow_dispatch:  # Manual trigger only
+
+permissions:
+  actions: write      # Needed to delete logs
+  contents: write     # Needed to force push new history
+
+jobs:
+  wipe_everything:
+    runs-on: ubuntu-latest
+    steps:
+      # --- STEP 1: DELETE ALL OLD ACTION LOGS ---
+      - name: Delete All Workflow History
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 0
+          keep_minimum_runs: 0  # ⚠️ Deletes EVERYTHING except this running job
+
+      # --- STEP 2: WIPE GIT COMMIT HISTORY ---
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Wipe Git History
+        run: |
+          # 1. Setup Bot Identity
+          git config --global user.name 'Cleaner Bot'
+          git config --global user.email 'bot@noreply.github.com'
+
+          # 2. Switch to a temporary "orphan" branch (detached from history)
+          git checkout --orphan temp_branch
+
+          # 3. Add all CURRENT files to this new branch
+          git add -A
+
+          # 4. Create the "New Beginning" commit
+          git commit -m "Initial commit (History Wiped)"
+
+          # 5. Delete the old main branch
+          git branch -D main
+
+          # 6. Rename current branch to main
+          git branch -m main
+
+          # 7. Force push to GitHub (This overwrites the repo)
+          git push -f origin main

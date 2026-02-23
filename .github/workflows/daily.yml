@@ -1,0 +1,66 @@
+name: Daily Poll Bot
+
+# ⚠️ Permission to write data back to the repo (Saves Streaks)
+permissions:
+  contents: write
+
+on:
+  schedule:
+    # This runs at 14:30 UTC. 
+    - cron: '30 14 * * *'
+  
+  # Allows you to run it manually from the "Actions" tab for testing
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    
+    # 👇 THIS IS THE ONLY CHANGE (The Switch) 👇
+    # If the variable BOT_SWITCH is not 'ON', the bot stops here.
+    if: vars.BOT_SWITCH == 'ON'
+    
+    steps:
+      # 1. Download your code from the repo
+      - uses: actions/checkout@v3
+      
+      # 2. Install Python 3.10
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+          
+      # 3. Install required libraries
+      - name: Install Libraries
+        run: pip install -r requirements.txt
+        
+      # 4. Run the main Python script
+      - name: Run Bot
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+          APP_HASH: ${{ secrets.APP_HASH }}
+          SESSION_KEY: ${{ secrets.SESSION_KEY }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          GROUP_ID: ${{ secrets.GROUP_ID }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python bot.py
+
+      # 5. SAVE DATA (Critical Step)
+      # This saves the streaks and poll ID so they aren't lost.
+      - name: Commit and Push Data
+        run: |
+          git config --global user.name 'GitHub Action Bot'
+          git config --global user.email 'action@github.com'
+          
+          # Pull latest to prevent conflicts
+          git pull
+          
+          # Force add the specific data files
+          git add quotes_db.txt streak_data.json last_poll_id.txt
+          
+          # Commit changes if there are any
+          git diff-index --quiet HEAD || git commit -m "Update streaks and database [skip ci]"
+          
+          # Push back to repo
+          git push
