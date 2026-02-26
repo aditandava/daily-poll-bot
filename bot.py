@@ -219,7 +219,7 @@ def get_unique_motivation():
         try:
             url = "https://api.groq.com/openai/v1/chat/completions"
             headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
-            prompt = "Write exactly ONE savage, short, high-intensity study motivation . Max 15 words. No hashtags. No quotes. Output ONLY the text. you can use hinglish too ."
+            prompt = "Generate exactly ONE brutal, punchy fitness motivation or tips line for study. Max 12 words. Raw energy, no fluff. Hinglish allowed. No hashtags, no quotes,emojis. Output ONLY the line."
             payload = {"model": "llama-3.1-8b-instant", "messages": [{"role": "user", "content": prompt}], "temperature": 1.1}
             
             response = requests.post(url, headers=headers, json=payload, timeout=5)
