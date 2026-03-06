@@ -384,9 +384,9 @@ async def main():
                 if FEATURE_PIN_POLL:
                     try:
                         await bot.pin_chat_message(
-                            chat_id=GROUP_ID,
-                            message_id=poll_msg.message_id
-                            disable_notification=False
+                        chat_id=GROUP_ID,
+                        message_id=poll_msg.message_id,
+                        disable_notification=False  
                         )
                         await asyncio.sleep(1)
                         # Clean up "pinned message" service notification
