@@ -1,0 +1,53 @@
+name: Daily Poll Bot
+
+permissions:
+  contents: write
+
+on:
+  schedule:
+    - cron: '30 14 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    if: vars.BOT_SWITCH == 'ON'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Libraries
+        run: pip install -r requirements.txt
+
+      - name: Run Bot
+        env:
+          APP_ID:               ${{ secrets.APP_ID }}
+          APP_HASH:             ${{ secrets.APP_HASH }}
+          SESSION_KEY:          ${{ secrets.SESSION_KEY }}
+          BOT_TOKEN:            ${{ secrets.BOT_TOKEN }}
+          GROUP_ID:             ${{ secrets.GROUP_ID }}
+          GROQ_API_KEY:         ${{ secrets.GROQ_API_KEY }}
+          FEATURE_POLL:         ${{ vars.FEATURE_POLL }}
+          FEATURE_LEADERBOARD:  ${{ vars.FEATURE_LEADERBOARD }}
+          FEATURE_TAGGING:      ${{ vars.FEATURE_TAGGING }}
+          FEATURE_MOTIVATION:   ${{ vars.FEATURE_MOTIVATION }}
+          FEATURE_PIN_POLL:     ${{ vars.FEATURE_PIN_POLL }}
+          FEATURE_STATUS_MSG:   ${{ vars.FEATURE_STATUS_MSG }}
+          TAGGING_CHUNK_SIZE:   ${{ vars.TAGGING_CHUNK_SIZE }}
+          LEADERBOARD_TOP_N:    ${{ vars.LEADERBOARD_TOP_N }}
+        run: python bot.py
+
+      - name: Commit and Push Data
+        run: |
+          git config --global user.name 'GitHub Action Bot'
+          git config --global user.email 'action@github.com'
+          git pull
+          git add quotes_db.txt streak_data.json last_poll_id.txt
+          git diff-index --quiet HEAD || git commit -m "Update streaks and database [skip ci]"
+          git push
